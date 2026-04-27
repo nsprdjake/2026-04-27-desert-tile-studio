@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desert Tile Studio</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #09080d;
+      --panel: rgba(20, 18, 28, 0.86);
+      --panel-2: rgba(31, 28, 42, 0.92);
+      --line: rgba(255,255,255,0.09);
+      --text: #f6f2ff;
+      --muted: #a8a1bb;
+      --accent: #ff8fb8;
+      --accent-2: #7cf3ff;
+      --shadow: 0 24px 60px rgba(0,0,0,0.45);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(255, 132, 189, 0.14), transparent 30%),
+        radial-gradient(circle at top right, rgba(95, 214, 255, 0.10), transparent 28%),
+        linear-gradient(180deg, #0a0910 0%, #09080d 45%, #050409 100%);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      padding: 22px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      width: min(1440px, 100%);
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .sidebar {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: sticky;
+      top: 22px;
+      height: fit-content;
+    }
+
+    .brand {
+      padding: 18px;
+      border-radius: 22px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 12px 0 8px;
+      font-size: clamp(30px, 4vw, 42px);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+    }
+
+    .lede, .micro {
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .micro { font-size: 13px; }
+
+    .control-group {
+      padding: 16px;
+      border-radius: 20px;
+      background: var(--panel-2);
+      border: 1px solid rgba(255,255,255,0.07);
+      display: grid;
+      gap: 14px;
+    }
+
+    .group-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+
+    label {
+      display: grid;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 12px 14px;
+      outline: none;
+      font: inherit;
+      transition: border-color 140ms ease, transform 140ms ease, background 140ms ease;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(124, 243, 255, 0.5);
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-1px);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .range-row, .seed-row, .metric-grid, .toolbar, .swatches {
+      display: grid;
+      gap: 10px;
+    }
+
+    .range-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .seed-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: end;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(255, 143, 184, 0.95), rgba(124, 243, 255, 0.95));
+      color: #120c16;
+      font: inherit;
+      font-weight: 700;
+      padding: 12px 15px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(124, 243, 255, 0.15);
+      transition: transform 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+    }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(255, 143, 184, 0.18); }
+    button:active { transform: translateY(0); }
+    button.secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      box-shadow: none;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .toolbar {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .swatches {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .swatch {
+      height: 34px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .swatch::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255,255,255,0.20), transparent 48%);
+      mix-blend-mode: screen;
+    }
+
+    .main {
+      display: grid;
+      gap: 20px;
+    }
+
+    .hero {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .hero-copy h2 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3vw, 34px);
+      letter-spacing: -0.03em;
+    }
+
+    .hero-copy p {
+      margin: 0;
+      max-width: 720px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .metric-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .metric {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .metric .k {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .metric .v {
+      font-size: clamp(18px, 2vw, 28px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+    }
+
+    .canvas-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 0.9fr;
+      gap: 20px;
+    }
+
+    .canvas-card {
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 24px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .canvas-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .canvas-head h3 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.01em;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      overflow: hidden;
+      border-radius: 24px;
+      background: #050409;
+      border: 1px solid rgba(255,255,255,0.08);
+      min-height: 320px;
+      display: grid;
+      place-items: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .recipe {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .chip {
+      padding: 9px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .footer-note {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 1120px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+      .sidebar {
+        position: static;
+      }
+      .canvas-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 14px; }
+      .sidebar, .hero { padding: 16px; }
+      .control-group, .canvas-card { padding: 14px; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .toolbar { grid-template-columns: 1fr; }
+      .swatches { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar panel">
+      <section class="brand">
+        <div class="eyebrow">Palm Springs pattern lab</div>
+        <h1>Desert Tile Studio</h1>
+        <p class="lede">A late-night pattern toy for making bold wallpaper, packaging backdrops, social graphics, or pure poolside eye candy.</p>
+      </section>
+
+      <section class="control-group">
+        <h2 class="group-title">Direction <span class="micro">start with a vibe</span></h2>
+        <label>
+          Motif family
+          <select id="motif">
+            <option value="mix">Mixed house blend</option>
+            <option value="sunburst">Sunburst motel</option>
+            <option value="pool">Pool tile</option>
+            <option value="bloom">Cactus bloom</option>
+            <option value="terrazzo">Terrazzo confetti</option>
+            <option value="casino">Casino sparkle</option>
+          </select>
+        </label>
+        <label>
+          Palette
+          <select id="palette"></select>
+        </label>
+        <label>
+          Poster label
+          <input id="label" type="text" maxlength="38" value="Palm Springs After Dark" />
+        </label>
+        <div class="seed-row">
+          <label>
+            Seed
+            <input id="seed" type="text" maxlength="24" value="midnight-palms" />
+          </label>
+          <button id="shuffleSeed" class="secondary" type="button">Shuffle</button>
+        </div>
+      </section>
+
+      <section class="control-group">
+        <h2 class="group-title">Pattern controls <span class="micro">dial the repeat</span></h2>
+        <label>
+          <div class="range-label"><span>Density</span><span id="densityValue"></span></div>
+          <input id="density" type="range" min="4" max="14" step="1" value="8" />
+        </label>
+        <label>
+          <div class="range-label"><span>Scale</span><span id="scaleValue"></span></div>
+          <input id="scale" type="range" min="65" max="170" step="1" value="108" />
+        </label>
+        <label>
+          <div class="range-label"><span>Rotation drift</span><span id="rotationValue"></span></div>
+          <input id="rotation" type="range" min="-45" max="45" step="1" value="12" />
+        </label>
+        <label>
+          <div class="range-label"><span>Glow</span><span id="glowValue"></span></div>
+          <input id="glow" type="range" min="0" max="100" step="1" value="28" />
+        </label>
+        <label>
+          <div class="range-label"><span>Grit</span><span id="gritValue"></span></div>
+          <input id="grit" type="range" min="0" max="100" step="1" value="22" />
+        </label>
+      </section>
+
+      <section class="control-group">
+        <h2 class="group-title">Actions <span class="micro">make trouble</span></h2>
+        <div class="toolbar">
+          <button id="surprise" type="button">Surprise me</button>
+          <button id="evolve" class="secondary" type="button">Evolve</button>
+          <button id="downloadTile" class="secondary" type="button">Download tile PNG</button>
+          <button id="downloadPoster" class="secondary" type="button">Download poster PNG</button>
+        </div>
+        <button id="copyRecipe" class="secondary" type="button">Copy recipe</button>
+        <div class="swatches" id="swatches"></div>
+      </section>
+
+      <p class="footer-note">Tip: find a seed you love, copy the recipe, then use the tile export as a repeating texture in print mockups, merch comps, wallpapers, or social posts.</p>
+    </aside>
+
+    <main class="main">
+      <section class="hero panel">
+        <div class="hero-top">
+          <div class="hero-copy">
+            <div class="eyebrow">One-file midnight build</div>
+            <h2>Design a reusable repeat, then kick out a ready-to-post hero image.</h2>
+            <p>Desert Tile Studio generates a seamless square tile plus a portrait poster preview so the same recipe can jump from packaging background to Instagram teaser without extra cleanup.</p>
+          </div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric"><span class="k">Tile size</span><span class="v" id="tileMetric">1080 px</span></div>
+          <div class="metric"><span class="k">Palette size</span><span class="v" id="paletteMetric">5 colors</span></div>
+          <div class="metric"><span class="k">Repeat mood</span><span class="v" id="moodMetric">Retro luxe</span></div>
+          <div class="metric"><span class="k">Recipe code</span><span class="v" id="recipeMetric">MIDNIGHT</span></div>
+        </div>
+
+        <div class="canvas-grid">
+          <article class="canvas-card">
+            <div class="canvas-head">
+              <h3>Poster preview</h3>
+              <span class="chip">1080 × 1350 export</span>
+            </div>
+            <div class="canvas-wrap"><canvas id="posterCanvas" width="1080" height="1350"></canvas></div>
+          </article>
+
+          <article class="canvas-card">
+            <div class="canvas-head">
+              <h3>Tile preview</h3>
+              <span class="chip">Seamless repeat</span>
+            </div>
+            <div class="canvas-wrap"><canvas id="tileCanvas" width="1080" height="1080"></canvas></div>
+            <div class="recipe" id="recipeChips"></div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const palettes = {
+      twilight: {
+        name: 'Twilight Cabana',
+        mood: 'Retro luxe',
+        colors: ['#120b1f', '#ff6ca8', '#ffd166', '#7cf3ff', '#f6f2ff']
+      },
+      oasis: {
+        name: 'Oasis Mint',
+        mood: 'Poolside chill',
+        colors: ['#08151f', '#0bb3a5', '#b8f28f', '#fef3c7', '#2fe3ff']
+      },
+      sienna: {
+        name: 'Sienna Mirage',
+        mood: 'Desert heat',
+        colors: ['#180b0b', '#ff8f5a', '#ffcf6b', '#ff4d8d', '#fff1df']
+      },
+      dusk: {
+        name: 'Velvet Dusk',
+        mood: 'Cocktail hour',
+        colors: ['#0f0b17', '#8358ff', '#ff85d1', '#60d9ff', '#ffe4a3']
+      },
+      casino: {
+        name: 'High Roller',
+        mood: 'Lounge neon',
+        colors: ['#09080d', '#ff4b7d', '#ffd24f', '#38f1ff', '#ffffff']
+      },
+      sand: {
+        name: 'Palm Canyon',
+        mood: 'Sun-baked calm',
+        colors: ['#17120d', '#d48d54', '#f4c98d', '#8adfd4', '#f4efe6']
+      }
+    };
+
+    const motifs = {
+      mix: 'Mixed house blend',
+      sunburst: 'Sunburst motel',
+      pool: 'Pool tile',
+      bloom: 'Cactus bloom',
+      terrazzo: 'Terrazzo confetti',
+      casino: 'Casino sparkle'
+    };
+
+    const els = {
+      motif: document.getElementById('motif'),
+      palette: document.getElementById('palette'),
+      label: document.getElementById('label'),
+      seed: document.getElementById('seed'),
+      shuffleSeed: document.getElementById('shuffleSeed'),
+      density: document.getElementById('density'),
+      scale: document.getElementById('scale'),
+      rotation: document.getElementById('rotation'),
+      glow: document.getElementById('glow'),
+      grit: document.getElementById('grit'),
+      densityValue: document.getElementById('densityValue'),
+      scaleValue: document.getElementById('scaleValue'),
+      rotationValue: document.getElementById('rotationValue'),
+      glowValue: document.getElementById('glowValue'),
+      gritValue: document.getElementById('gritValue'),
+      tileCanvas: document.getElementById('tileCanvas'),
+      posterCanvas: document.getElementById('posterCanvas'),
+      surprise: document.getElementById('surprise'),
+      evolve: document.getElementById('evolve'),
+      downloadTile: document.getElementById('downloadTile'),
+      downloadPoster: document.getElementById('downloadPoster'),
+      copyRecipe: document.getElementById('copyRecipe'),
+      swatches: document.getElementById('swatches'),
+      tileMetric: document.getElementById('tileMetric'),
+      paletteMetric: document.getElementById('paletteMetric'),
+      moodMetric: document.getElementById('moodMetric'),
+      recipeMetric: document.getElementById('recipeMetric'),
+      recipeChips: document.getElementById('recipeChips')
+    };
+
+    Object.entries(palettes).forEach(([key, value]) => {
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = value.name;
+      els.palette.appendChild(option);
+    });
+    els.palette.value = 'twilight';
+
+    const tileCtx = els.tileCanvas.getContext('2d');
+    const posterCtx = els.posterCanvas.getContext('2d');
+
+    function hashSeed(str) {
+      let h = 2166136261 >>> 0;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return h >>> 0;
+    }
+
+    function mulberry32(a) {
+      return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function randomSeedWord() {
+      const a = ['afterglow', 'mirage', 'pool', 'neon', 'canyon', 'palm', 'cabana', 'jackpot', 'sundown', 'stardust'];
+      const b = ['motel', 'tile', 'velvet', 'bloom', 'stripe', 'casino', 'spritz', 'drift', 'lounge', 'orbit'];
+      return `${a[Math.floor(Math.random() * a.length)]}-${b[Math.floor(Math.random() * b.length)]}-${Math.floor(Math.random() * 900 + 100)}`;
+    }
+
+    function clamp(n, min, max) {
+      return Math.min(max, Math.max(min, n));
+    }
+
+    function roundRectPath(ctx, x, y, w, h, r) {
+      const rr = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + rr, y);
+      ctx.arcTo(x + w, y, x + w, y + h, rr);
+      ctx.arcTo(x + w, y + h, x, y + h, rr);
+      ctx.arcTo(x, y + h, x, y, rr);
+      ctx.arcTo(x, y, x + w, y, rr);
+      ctx.closePath();
+    }
+
+    function withShadow(ctx, color, blur, fn) {
+      ctx.save();
+      ctx.shadowColor = color;
+      ctx.shadowBlur = blur;
+      fn();
+      ctx.restore();
+    }
+
+    function drawSunburst(ctx, x, y, size, palette, rng, rotation, glow) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation + rng() * Math.PI);
+      const rayCount = 10;
+      const outer = size * (0.34 + rng() * 0.1);
+      const inner = outer * 0.34;
+      ctx.fillStyle = palette[2];
+      withShadow(ctx, palette[3] + '88', glow, () => {
+        for (let i = 0; i < rayCount; i++) {
+          const angle = (Math.PI * 2 / rayCount) * i;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+          ctx.lineTo(Math.cos(angle + 0.16) * outer, Math.sin(angle + 0.16) * outer);
+          ctx.lineTo(Math.cos(angle - 0.16) * outer, Math.sin(angle - 0.16) * outer);
+          ctx.closePath();
+          ctx.fill();
+        }
+      });
+      ctx.fillStyle = palette[1];
+      ctx.beginPath();
+      ctx.arc(0, 0, inner * 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = palette[4];
+      ctx.beginPath();
+      ctx.arc(0, 0, inner * 0.58, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawPool(ctx, x, y, size, palette, rng, rotation, glow) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation + (rng() - 0.5) * 0.45);
+      const tile = size * (0.58 + rng() * 0.08);
+      roundRectPath(ctx, -tile / 2, -tile / 2, tile, tile, tile * 0.18);
+      ctx.fillStyle = palette[3];
+      ctx.fill();
+      ctx.lineWidth = Math.max(3, tile * 0.04);
+      ctx.strokeStyle = palette[4];
+      ctx.stroke();
+      ctx.strokeStyle = palette[1];
+      ctx.lineWidth = Math.max(2, tile * 0.022);
+      withShadow(ctx, palette[4] + '66', glow * 0.9, () => {
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.arc(0, 0, tile * (0.12 + i * 0.12), Math.PI * (0.15 + i * 0.08), Math.PI * (1.1 + i * 0.1));
+          ctx.stroke();
+        }
+      });
+      ctx.restore();
+    }
+
+    function drawBloom(ctx, x, y, size, palette, rng, rotation, glow) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation + rng() * Math.PI);
+      const petals = 5 + Math.floor(rng() * 3);
+      const radius = size * (0.24 + rng() * 0.08);
+      withShadow(ctx, palette[1] + '77', glow, () => {
+        for (let i = 0; i < petals; i++) {
+          ctx.save();
+          ctx.rotate((Math.PI * 2 / petals) * i);
+          ctx.fillStyle = i % 2 === 0 ? palette[1] : palette[2];
+          ctx.beginPath();
+          ctx.ellipse(0, -radius * 0.95, radius * 0.46, radius * 0.86, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+      ctx.fillStyle = palette[4];
+      ctx.beginPath();
+      ctx.arc(0, 0, radius * 0.44, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawTerrazzo(ctx, x, y, size, palette, rng, rotation, glow) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation + (rng() - 0.5) * 0.6);
+      const chips = 4 + Math.floor(rng() * 5);
+      for (let i = 0; i < chips; i++) {
+        const px = (rng() - 0.5) * size * 0.42;
+        const py = (rng() - 0.5) * size * 0.42;
+        const rx = size * (0.06 + rng() * 0.12);
+        const ry = size * (0.04 + rng() * 0.10);
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(rng() * Math.PI * 2);
+        ctx.fillStyle = palette[(i % (palette.length - 1)) + 1];
+        withShadow(ctx, palette[4] + '20', glow * 0.55, () => {
+          ctx.beginPath();
+          ctx.moveTo(-rx, -ry * 0.35);
+          ctx.quadraticCurveTo(0, -ry, rx, -ry * 0.2);
+          ctx.quadraticCurveTo(rx * 1.1, ry, -rx * 0.4, ry * 0.8);
+          ctx.quadraticCurveTo(-rx * 1.1, ry * 0.2, -rx, -ry * 0.35);
+          ctx.fill();
+        });
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    function drawCasino(ctx, x, y, size, palette, rng, rotation, glow) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rotation + rng() * Math.PI * 0.5);
+      const diamond = size * (0.24 + rng() * 0.08);
+      ctx.fillStyle = palette[1];
+      withShadow(ctx, palette[2] + '66', glow, () => {
+        ctx.beginPath();
+        ctx.moveTo(0, -diamond);
+        ctx.lineTo(diamond * 0.9, 0);
+        ctx.lineTo(0, diamond);
+        ctx.lineTo(-diamond * 0.9, 0);
+        ctx.closePath();
+        ctx.fill();
+      });
+      ctx.strokeStyle = palette[4];
+      ctx.lineWidth = Math.max(2, size * 0.025);
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath();
+        const angle = i * (Math.PI / 2) + Math.PI / 4;
+        ctx.moveTo(Math.cos(angle) * diamond * 0.15, Math.sin(angle) * diamond * 0.15);
+        ctx.lineTo(Math.cos(angle) * diamond * 1.15, Math.sin(angle) * diamond * 1.15);
+        ctx.stroke();
+      }
+      ctx.fillStyle = palette[2];
+      ctx.beginPath();
+      ctx.arc(0, 0, diamond * 0.18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawBackgroundGlow(ctx, palette, size, glowStrength, rng) {
+      const glow = ctx.createRadialGradient(size * 0.2, size * 0.2, size * 0.05, size * 0.2, size * 0.2, size * 0.8);
+      glow.addColorStop(0, palette[1] + Math.floor(38 + glowStrength * 30).toString(16).padStart(2, '0'));
+      glow.addColorStop(0.38, palette[3] + Math.floor(18 + glowStrength * 16).toString(16).padStart(2, '0'));
+      glow.addColorStop(1, palette[0] + '00');
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, size, size);
+
+      const glow2 = ctx.createRadialGradient(size * 0.85, size * 0.86, size * 0.02, size * 0.85, size * 0.86, size * 0.55);
+      glow2.addColorStop(0, palette[2] + Math.floor(26 + glowStrength * 28).toString(16).padStart(2, '0'));
+      glow2.addColorStop(1, palette[0] + '00');
+      ctx.fillStyle = glow2;
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.strokeStyle = palette[4] + '10';
+      ctx.lineWidth = 1;
+      const lines = 8;
+      for (let i = 1; i < lines; i++) {
+        const y = (size / lines) * i + (rng() - 0.5) * 8;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.quadraticCurveTo(size * 0.35, y + rng() * 18 - 9, size, y + rng() * 10 - 5);
+        ctx.stroke();
+      }
+    }
+
+    function addGrit(ctx, width, height, amount, palette, rng) {
+      const count = Math.floor(width * height * 0.00012 * amount);
+      ctx.save();
+      for (let i = 0; i < count; i++) {
+        ctx.fillStyle = rng() > 0.7 ? palette[4] + '18' : palette[0] + '28';
+        const x = rng() * width;
+        const y = rng() * height;
+        const s = rng() * 1.8 + 0.25;
+        ctx.fillRect(x, y, s, s);
+      }
+      ctx.restore();
+    }
+
+    function render() {
+      const seedText = els.seed.value.trim() || 'midnight-palms';
+      const seedValue = hashSeed(seedText + '::' + els.motif.value + '::' + els.palette.value);
+      const rng = mulberry32(seedValue);
+      const palette = palettes[els.palette.value].colors;
+      const density = Number(els.density.value);
+      const scale = Number(els.scale.value) / 100;
+      const rotation = Number(els.rotation.value) * Math.PI / 180;
+      const glow = Number(els.glow.value) / 100;
+      const grit = Number(els.grit.value) / 100;
+      const tileSize = els.tileCanvas.width;
+      const cell = tileSize / density;
+
+      els.densityValue.textContent = `${density} × ${density}`;
+      els.scaleValue.textContent = `${Math.round(scale * 100)}%`;
+      els.rotationValue.textContent = `${els.rotation.value}°`;
+      els.glowValue.textContent = `${els.glow.value}%`;
+      els.gritValue.textContent = `${els.grit.value}%`;
+      els.tileMetric.textContent = `${tileSize} px`;
+      els.paletteMetric.textContent = `${palette.length} colors`;
+      els.moodMetric.textContent = palettes[els.palette.value].mood;
+      els.recipeMetric.textContent = seedText.replace(/[^a-z0-9]/gi, '').slice(0, 8).toUpperCase() || 'SEED';
+
+      tileCtx.clearRect(0, 0, tileSize, tileSize);
+      tileCtx.fillStyle = palette[0];
+      tileCtx.fillRect(0, 0, tileSize, tileSize);
+      drawBackgroundGlow(tileCtx, palette, tileSize, glow, rng);
+
+      const drawList = ['sunburst', 'pool', 'bloom', 'terrazzo', 'casino'];
+      for (let gy = 0; gy < density; gy++) {
+        for (let gx = 0; gx < density; gx++) {
+          const x = gx * cell + cell / 2;
+          const y = gy * cell + cell / 2;
+          const jitterX = (rng() - 0.5) * cell * 0.18;
+          const jitterY = (rng() - 0.5) * cell * 0.18;
+          const size = cell * scale;
+          const motif = els.motif.value === 'mix' ? drawList[Math.floor(rng() * drawList.length)] : els.motif.value;
+          switch (motif) {
+            case 'sunburst':
+              drawSunburst(tileCtx, x + jitterX, y + jitterY, size, palette, rng, rotation, 18 + glow * 36);
+              break;
+            case 'pool':
+              drawPool(tileCtx, x + jitterX, y + jitterY, size, palette, rng, rotation, 16 + glow * 32);
+              break;
+            case 'bloom':
+              drawBloom(tileCtx, x + jitterX, y + jitterY, size, palette, rng, rotation, 14 + glow * 34);
+              break;
+            case 'terrazzo':
+              drawTerrazzo(tileCtx, x + jitterX, y + jitterY, size, palette, rng, rotation, 12 + glow * 24);
+              break;
+            case 'casino':
+              drawCasino(tileCtx, x + jitterX, y + jitterY, size, palette, rng, rotation, 18 + glow * 38);
+              break;
+          }
+        }
+      }
+
+      addGrit(tileCtx, tileSize, tileSize, grit * 100, palette, rng);
+      renderPoster(palette, seedText, rng);
+      renderSwatches(palette);
+      renderRecipe(seedText);
+    }
+
+    function renderPoster(palette, seedText, rng) {
+      const width = els.posterCanvas.width;
+      const height = els.posterCanvas.height;
+      posterCtx.clearRect(0, 0, width, height);
+      posterCtx.fillStyle = palette[0];
+      posterCtx.fillRect(0, 0, width, height);
+
+      const pattern = posterCtx.createPattern(els.tileCanvas, 'repeat');
+      const scale = 0.32;
+      if (pattern && pattern.setTransform) {
+        pattern.setTransform(new DOMMatrix().scale(scale));
+      }
+      posterCtx.save();
+      posterCtx.fillStyle = pattern || palette[0];
+      posterCtx.fillRect(0, 0, width, height);
+      posterCtx.restore();
+
+      const fade = posterCtx.createLinearGradient(0, 0, 0, height);
+      fade.addColorStop(0, 'rgba(5,4,9,0.16)');
+      fade.addColorStop(0.55, 'rgba(5,4,9,0.02)');
+      fade.addColorStop(1, 'rgba(5,4,9,0.62)');
+      posterCtx.fillStyle = fade;
+      posterCtx.fillRect(0, 0, width, height);
+
+      posterCtx.fillStyle = 'rgba(8,7,12,0.56)';
+      roundRectPath(posterCtx, 64, height - 262, width - 128, 170, 36);
+      posterCtx.fill();
+
+      posterCtx.fillStyle = palette[4];
+      posterCtx.font = '700 72px Inter, system-ui, sans-serif';
+      posterCtx.textBaseline = 'alphabetic';
+      posterCtx.fillText((els.label.value || 'Palm Springs After Dark').slice(0, 28), 98, height - 170);
+      posterCtx.fillStyle = palette[2];
+      posterCtx.font = '600 28px Inter, system-ui, sans-serif';
+      posterCtx.fillText(`${motifs[els.motif.value]} • ${palettes[els.palette.value].name}`, 100, height - 124);
+      posterCtx.fillStyle = 'rgba(255,255,255,0.72)';
+      posterCtx.font = '500 22px Inter, system-ui, sans-serif';
+      posterCtx.fillText(`Seed ${seedText}  ·  crafted in Desert Tile Studio`, 100, height - 86);
+
+      posterCtx.save();
+      posterCtx.globalCompositeOperation = 'screen';
+      const flare = posterCtx.createRadialGradient(width * 0.78, height * 0.12, 10, width * 0.78, height * 0.12, 220);
+      flare.addColorStop(0, palette[2] + 'aa');
+      flare.addColorStop(0.25, palette[1] + '66');
+      flare.addColorStop(1, 'rgba(255,255,255,0)');
+      posterCtx.fillStyle = flare;
+      posterCtx.fillRect(0, 0, width, height);
+      posterCtx.restore();
+    }
+
+    function renderSwatches(palette) {
+      els.swatches.innerHTML = '';
+      palette.forEach((color) => {
+        const div = document.createElement('div');
+        div.className = 'swatch';
+        div.style.background = color;
+        div.title = color;
+        els.swatches.appendChild(div);
+      });
+    }
+
+    function renderRecipe(seedText) {
+      const chips = [
+        motifs[els.motif.value],
+        palettes[els.palette.value].name,
+        `${els.density.value}×${els.density.value}`,
+        `${els.scale.value}% scale`,
+        `${els.rotation.value}° drift`,
+        seedText
+      ];
+      els.recipeChips.innerHTML = '';
+      chips.forEach((text) => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.textContent = text;
+        els.recipeChips.appendChild(chip);
+      });
+    }
+
+    function surpriseMe() {
+      const motifKeys = Object.keys(motifs);
+      const paletteKeys = Object.keys(palettes);
+      els.motif.value = motifKeys[Math.floor(Math.random() * motifKeys.length)];
+      els.palette.value = paletteKeys[Math.floor(Math.random() * paletteKeys.length)];
+      els.seed.value = randomSeedWord();
+      els.density.value = String(Math.floor(Math.random() * 9) + 5);
+      els.scale.value = String(Math.floor(Math.random() * 85) + 75);
+      els.rotation.value = String(Math.floor(Math.random() * 81) - 40);
+      els.glow.value = String(Math.floor(Math.random() * 55) + 18);
+      els.grit.value = String(Math.floor(Math.random() * 44) + 8);
+      render();
+    }
+
+    function evolve() {
+      els.seed.value = `${els.seed.value.split('-')[0] || 'mirage'}-${Math.floor(Math.random() * 900 + 100)}`;
+      els.density.value = String(clamp(Number(els.density.value) + (Math.random() > 0.5 ? 1 : -1), 4, 14));
+      els.scale.value = String(clamp(Number(els.scale.value) + Math.round((Math.random() - 0.5) * 24), 65, 170));
+      els.rotation.value = String(clamp(Number(els.rotation.value) + Math.round((Math.random() - 0.5) * 18), -45, 45));
+      els.glow.value = String(clamp(Number(els.glow.value) + Math.round((Math.random() - 0.5) * 18), 0, 100));
+      render();
+    }
+
+    function downloadCanvas(canvas, filename) {
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = filename;
+      link.click();
+    }
+
+    async function copyRecipe() {
+      const recipe = {
+        label: els.label.value,
+        motif: els.motif.value,
+        palette: els.palette.value,
+        seed: els.seed.value,
+        density: Number(els.density.value),
+        scale: Number(els.scale.value),
+        rotation: Number(els.rotation.value),
+        glow: Number(els.glow.value),
+        grit: Number(els.grit.value)
+      };
+      const text = JSON.stringify(recipe, null, 2);
+      try {
+        await navigator.clipboard.writeText(text);
+        els.copyRecipe.textContent = 'Recipe copied';
+        setTimeout(() => { els.copyRecipe.textContent = 'Copy recipe'; }, 1400);
+      } catch (error) {
+        els.copyRecipe.textContent = 'Copy failed';
+        setTimeout(() => { els.copyRecipe.textContent = 'Copy recipe'; }, 1400);
+      }
+    }
+
+    ['motif','palette','label','seed','density','scale','rotation','glow','grit'].forEach((key) => {
+      els[key].addEventListener('input', render);
+      els[key].addEventListener('change', render);
+    });
+
+    els.shuffleSeed.addEventListener('click', () => {
+      els.seed.value = randomSeedWord();
+      render();
+    });
+    els.surprise.addEventListener('click', surpriseMe);
+    els.evolve.addEventListener('click', evolve);
+    els.downloadTile.addEventListener('click', () => downloadCanvas(els.tileCanvas, 'desert-tile.png'));
+    els.downloadPoster.addEventListener('click', () => downloadCanvas(els.posterCanvas, 'desert-poster.png'));
+    els.copyRecipe.addEventListener('click', copyRecipe);
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key.toLowerCase() === 'r' && !event.metaKey && !event.ctrlKey) {
+        if (document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+        event.preventDefault();
+        surpriseMe();
+      }
+    });
+
+    render();
+  </script>
+</body>
+</html>
