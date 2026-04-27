@@ -8,4 +8,5 @@ Why it’s cool:
 
 Try it:
 - Local file: `overnight-creative/2026-04-27-desert-tile-studio/index.html`
-- GitHub / live link: add here after push/deploy
+- GitHub: `https://github.com/nsprdjake/2026-04-27-desert-tile-studio`
+- Live: `https://2026-04-27-desert-tile-studio.vercel.app`
